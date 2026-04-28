@@ -1,162 +1,204 @@
-# Ubuntu Wayland Voice Input Injection
+# Voice Input Online
 
-This folder contains the small injection layer for online or local speech
-transcription tools.
+Voice Input Online is a small desktop voice input tool for Ubuntu GNOME
+Wayland. It uses Azure Speech to transcribe one utterance from the microphone,
+then inserts the recognized text into the active terminal or regular GUI text
+field.
 
-## Current system finding
+The settings app includes Azure credential setup, shortcut configuration,
+conflict checks, local quota estimation, diagnostics, and a built-in setup
+guide. The interface can switch between Simplified Chinese and English.
 
-The machine runs Ubuntu GNOME on Wayland. `xdotool` is not reliable for native
-Wayland apps, including GNOME Terminal and Wayland Chrome. Use `ydotool`
-through `/dev/uinput` instead.
+English summary: Azure Speech powered voice input for Ubuntu GNOME Wayland,
+with a PySide6 settings GUI, GNOME shortcuts, terminal/text-field injection,
+and local usage estimation.
 
-The required udev rule is:
+## Features
 
-```text
-KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
-```
+- Azure Speech one-shot recognition from the default microphone.
+- Text injection for GNOME Terminal, browsers, editors, and other text fields.
+- PySide6 GUI for credentials, language, shortcuts, quota estimate, diagnostics,
+  and Azure setup guidance.
+- Shortcut capture and GNOME conflict detection before saving.
+- Strict UI language switch: Simplified Chinese or English.
+- Local usage estimate stored under `.state/`, separate from Azure billing.
+- Secret-safe default layout: `.env` is ignored by git; `.env.example` only
+  contains placeholders.
 
-It is installed at:
+## Platform Status
 
-```text
-/etc/udev/rules.d/99-uinput-ydotool.rules
-```
+Current implementation targets Ubuntu GNOME on Wayland. The injection layer
+uses `ydotool` through `/dev/uinput`, because `xdotool` is not reliable for
+native Wayland apps.
 
-## Inject recognized text
+Windows, WSL, macOS, KDE, and X11 are not the primary supported targets yet.
+The Azure recognition layer is portable Python, but text injection and global
+shortcut installation need platform-specific adapters.
 
-For GNOME Terminal command lines:
+## Quick Start
+
+Install system packages on Ubuntu:
 
 ```bash
-printf 'ls -la' | ./inject-text.sh --mode terminal
+sudo apt install python3-venv ydotool wl-clipboard
 ```
 
-For regular GUI text fields:
+Clone and install Python dependencies:
+
+```bash
+git clone https://github.com/spirit109/voice-input-online.git
+cd voice-input-online
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+Create local configuration:
+
+```bash
+cp .env.example .env
+```
+
+Open the settings app:
+
+```bash
+./run-gui.sh
+```
+
+Fill in the Azure Speech key and region in the GUI, then use the diagnostics
+page to test recognition and injection.
+
+## Azure Speech Setup
+
+Create an Azure AI Speech resource in the Azure portal, then copy one key and
+the resource region into the app.
+For a Chinese step-by-step note, see [docs/azure-setup.zh-CN.md](docs/azure-setup.zh-CN.md).
+
+Minimal `.env` example:
+
+```bash
+AZURE_SPEECH_KEY=replace-with-your-azure-speech-key
+AZURE_SPEECH_REGION=eastasia
+AZURE_SPEECH_LANGUAGE=zh-CN
+```
+
+Do not commit your real `.env`. The repository ignores it by default.
+
+## Text Injection
+
+Recognize one utterance and insert it into GNOME Terminal:
+
+```bash
+./run-azure-voice-input.sh --mode terminal
+```
+
+Recognize and insert into a normal GUI text field:
+
+```bash
+./run-azure-voice-input.sh --mode gui
+```
+
+Print the recognized text without inserting it:
+
+```bash
+./run-azure-voice-input.sh --print-only
+```
+
+Pipe text directly into the injection layer:
 
 ```bash
 printf 'hello world' | ./inject-text.sh --mode gui
 ```
 
-If clipboard paste fails in a specific app, try direct typing:
+Modes:
+
+- `terminal`: copy to Wayland clipboard, then press `Ctrl+Shift+V`.
+- `gui`: copy to Wayland clipboard, then press `Ctrl+V`.
+- `type`: type through `ydotool`; slower, but avoids clipboard.
+
+By default the tool does not press Enter after injection. To execute a terminal
+command immediately, add `--append-newline`.
+
+## Desktop Launchers And Shortcuts
+
+Install GNOME application launchers, desktop entries, and default shortcuts:
 
 ```bash
-printf 'hello world' | ./inject-text.sh --mode type
-```
-
-## Online ASR integration point
-
-An online ASR script should send the final recognized text to this command:
-
-```bash
-printf '%s' "$TRANSCRIPT" | /home/kk/AI/CODEX/voice-input-online+20260426/inject-text.sh --mode terminal
-```
-
-## Azure Speech input
-
-Install dependencies in the project virtual environment:
-
-```bash
-cd /home/kk/AI/CODEX/voice-input-online+20260426
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-```
-
-Open the configuration GUI:
-
-```bash
-/home/kk/AI/CODEX/voice-input-online+20260426/run-gui.sh
-```
-
-The GUI includes Azure credential entry, shortcut configuration, local quota
-estimation, diagnostics, and the Azure setup guide.
-Use the interface language selector on the overview page to switch between
-Simplified Chinese and English. The GUI dialogs and desktop notifications use
-the selected language.
-
-Set credentials from an Azure AI Speech resource:
-
-```bash
-export AZURE_SPEECH_KEY='your-key'
-export AZURE_SPEECH_REGION='eastasia'
-```
-
-Or create a local `.env` from `.env.example`; `.env` is ignored by git:
-
-```bash
-cd /home/kk/AI/CODEX/voice-input-online+20260426
-cp .env.example .env
-```
-
-Recognize one utterance from the default microphone and inject it into GNOME
-Terminal:
-
-```bash
-/home/kk/AI/CODEX/voice-input-online+20260426/run-azure-voice-input.sh --mode terminal
-```
-
-For regular GUI text fields, use:
-
-```bash
-/home/kk/AI/CODEX/voice-input-online+20260426/run-azure-voice-input.sh --mode gui
-```
-
-To print the recognized text without injecting:
-
-```bash
-/home/kk/AI/CODEX/voice-input-online+20260426/run-azure-voice-input.sh --print-only
-```
-
-By default it does not press Enter after injecting. To execute a terminal
-command immediately, add:
-
-```bash
---append-newline
-```
-
-## Desktop launchers and shortcut
-
-Install GNOME application launchers, desktop icons, and a global shortcut:
-
-```bash
-cd /home/kk/AI/CODEX/voice-input-online+20260426
 ./install-shortcuts.sh
 ```
 
-This installs three launchers:
+Default shortcuts:
 
 ```text
-Azure 语音输入
-Azure 语音输入（终端）
-Azure 语音输入（普通输入框）
+Ctrl+Alt+Space -> terminal mode
+Ctrl+Alt+/     -> GUI text-field mode
 ```
 
-It also binds this GNOME shortcut:
-
-```text
-Ctrl+Alt+Space -> Azure 语音输入（终端）
-Ctrl+Alt+/     -> Azure 语音输入（普通输入框）
-```
-
-The terminal mode uses `Ctrl+Shift+V` paste, which is suitable for GNOME
-Terminal. The GUI mode uses `Ctrl+V`, which is suitable for browser and editor
-text fields.
+The installer renders `.desktop` files from `packaging/linux/*.desktop.in` with
+the current clone path, so users can clone the repository anywhere.
 
 In the GUI shortcut page, click a shortcut field and press the desired key
-combination. The app checks GNOME system/custom shortcuts before saving or
-installing, and shows alternative suggestions when a conflict is found.
-
-Tap the shortcut briefly. Repeated triggers while recognition is active are
-ignored, and one recognition pass is capped at 45 seconds by default.
+combination. The app checks existing GNOME system/custom shortcuts and shows
+alternative suggestions when a conflict is found.
 
 GNOME custom shortcuts usually do not distinguish left and right Shift. Avoid
-using plain `Shift+/` because it is the normal `?` text input shortcut.
+plain `Shift+/`, because it is also the normal `?` text input shortcut.
 
-## Local quota estimate
+## Quota Estimate
 
-Each successful Azure transcription records an approximate local duration in:
+Each successful transcription records an approximate local duration in:
 
 ```text
-/home/kk/AI/CODEX/voice-input-online+20260426/.state/usage.json
+.state/usage.json
 ```
 
 The GUI shows monthly local usage against `AZURE_SPEECH_FREE_TIER_SECONDS`
 from `.env`. This is only a local estimate for this tool; it is not the Azure
 official bill or quota counter.
+
+## Project Structure
+
+```text
+.
+├── azure_voice_input.py          # Azure Speech recognition CLI
+├── voice_input_gui.py            # PySide6 settings GUI
+├── voice_config.py               # .env parsing and writing
+├── voice_i18n.py                 # Chinese/English UI strings
+├── voice_usage.py                # Local usage estimate
+├── inject-text.sh                # Wayland text injection helper
+├── voice-input-once.sh           # Shortcut-friendly one-shot wrapper
+├── run-azure-voice-input.sh      # Loads .env and runs recognition
+├── run-gui.sh                    # Starts the settings GUI
+├── install-shortcuts.sh          # Installs GNOME launchers and shortcuts
+├── packaging/linux/*.desktop.in  # Desktop entry templates
+├── requirements.txt              # Python dependencies
+└── .env.example                  # Safe configuration template
+```
+
+## Development Checks
+
+```bash
+.venv/bin/python -m py_compile azure_voice_input.py voice_config.py voice_i18n.py voice_input_gui.py voice_usage.py
+bash -n inject-text.sh install-shortcuts.sh run-azure-voice-input.sh run-gui.sh voice-input-once.sh
+```
+
+If `desktop-file-validate` is installed, validate rendered desktop templates:
+
+```bash
+mkdir -p .state/desktop-validate
+for file in packaging/linux/*.desktop.in; do
+  out=".state/desktop-validate/$(basename "${file%.in}")"
+  sed "s|@PROJECT_DIR@|$PWD|g" "$file" > "$out"
+  desktop-file-validate "$out"
+done
+```
+
+## Security
+
+- Keep real Azure keys in `.env` only.
+- `.env`, `.venv/`, `.state/`, and Python cache files are ignored by git.
+- Rotate the Azure key immediately if it is ever committed or pasted into an
+  issue, log, screenshot, or chat transcript.
+
+## License
+
+MIT License. See [LICENSE](LICENSE).

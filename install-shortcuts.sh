@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 DESKTOP_DIR="$HOME/桌面"
 ENV_FILE="$SCRIPT_DIR/.env"
+TEMPLATE_DIR="$SCRIPT_DIR/packaging/linux"
 
 if [[ -f "$ENV_FILE" ]]; then
   set -a
@@ -32,6 +33,25 @@ msg() {
   esac
 }
 
+render_desktop_entry() {
+  local template="$1"
+  local target="$2"
+  local mode="$3"
+
+  python3 - "$template" "$target" "$SCRIPT_DIR" <<'PY'
+from pathlib import Path
+import sys
+
+template_path = Path(sys.argv[1])
+target_path = Path(sys.argv[2])
+project_dir = sys.argv[3]
+
+text = template_path.read_text(encoding="utf-8").replace("@PROJECT_DIR@", project_dir)
+target_path.write_text(text, encoding="utf-8")
+PY
+  chmod "$mode" "$target"
+}
+
 TERMINAL_KEYBINDING_PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/azure-voice-input-terminal/"
 TERMINAL_KEYBINDING_NAME="$(msg terminal_name)"
 TERMINAL_KEYBINDING_COMMAND="$SCRIPT_DIR/voice-input-once.sh --mode terminal"
@@ -47,14 +67,14 @@ if [[ ! -d "$DESKTOP_DIR" && -d "$HOME/Desktop" ]]; then
 fi
 
 install -d "$APP_DIR"
-install -m 0644 "$SCRIPT_DIR/azure-voice-input-settings.desktop" "$APP_DIR/azure-voice-input-settings.desktop"
-install -m 0644 "$SCRIPT_DIR/azure-voice-input-terminal.desktop" "$APP_DIR/azure-voice-input-terminal.desktop"
-install -m 0644 "$SCRIPT_DIR/azure-voice-input-gui.desktop" "$APP_DIR/azure-voice-input-gui.desktop"
+render_desktop_entry "$TEMPLATE_DIR/azure-voice-input-settings.desktop.in" "$APP_DIR/azure-voice-input-settings.desktop" 0644
+render_desktop_entry "$TEMPLATE_DIR/azure-voice-input-terminal.desktop.in" "$APP_DIR/azure-voice-input-terminal.desktop" 0644
+render_desktop_entry "$TEMPLATE_DIR/azure-voice-input-gui.desktop.in" "$APP_DIR/azure-voice-input-gui.desktop" 0644
 
 if [[ -d "$DESKTOP_DIR" ]]; then
-  install -m 0755 "$SCRIPT_DIR/azure-voice-input-settings.desktop" "$DESKTOP_DIR/azure-voice-input-settings.desktop"
-  install -m 0755 "$SCRIPT_DIR/azure-voice-input-terminal.desktop" "$DESKTOP_DIR/azure-voice-input-terminal.desktop"
-  install -m 0755 "$SCRIPT_DIR/azure-voice-input-gui.desktop" "$DESKTOP_DIR/azure-voice-input-gui.desktop"
+  render_desktop_entry "$TEMPLATE_DIR/azure-voice-input-settings.desktop.in" "$DESKTOP_DIR/azure-voice-input-settings.desktop" 0755
+  render_desktop_entry "$TEMPLATE_DIR/azure-voice-input-terminal.desktop.in" "$DESKTOP_DIR/azure-voice-input-terminal.desktop" 0755
+  render_desktop_entry "$TEMPLATE_DIR/azure-voice-input-gui.desktop.in" "$DESKTOP_DIR/azure-voice-input-gui.desktop" 0755
   if command -v gio >/dev/null; then
     gio set "$DESKTOP_DIR/azure-voice-input-settings.desktop" metadata::trusted true 2>/dev/null || true
     gio set "$DESKTOP_DIR/azure-voice-input-terminal.desktop" metadata::trusted true 2>/dev/null || true
