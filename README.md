@@ -98,3 +98,36 @@ command immediately, add:
 ```bash
 --append-newline
 ```
+
+## Desktop launchers and shortcut
+
+Install GNOME application launchers, desktop icons, and a global shortcut:
+
+```bash
+cd /home/kk/AI/CODEX/voice-input-online+20260426
+./install-shortcuts.sh
+```
+
+This installs two launchers:
+
+```text
+Azure 语音输入（终端）
+Azure 语音输入（普通输入框）
+```
+
+It also binds this GNOME shortcut:
+
+```text
+Ctrl+Alt+Space -> Azure 语音输入（终端）
+Ctrl+Alt+/     -> Azure 语音输入（普通输入框）
+```
+
+The terminal mode uses `Ctrl+Shift+V` paste, which is suitable for GNOME
+Terminal. The GUI mode uses `Ctrl+V`, which is suitable for browser and editor
+text fields.
+
+Tap the shortcut briefly. Repeated triggers while recognition is active are
+ignored, and one recognition pass is capped at 45 seconds by default.
+
+GNOME custom shortcuts usually do not distinguish left and right Shift. Avoid
+using plain `Shift+/` because it is the normal `?` text input shortcut.
