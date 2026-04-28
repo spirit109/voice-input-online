@@ -5,28 +5,40 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 DESKTOP_DIR="$HOME/桌面"
+ENV_FILE="$SCRIPT_DIR/.env"
+
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+
 TERMINAL_KEYBINDING_PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/azure-voice-input-terminal/"
 TERMINAL_KEYBINDING_NAME="Azure 语音输入（终端）"
 TERMINAL_KEYBINDING_COMMAND="$SCRIPT_DIR/voice-input-once.sh --mode terminal"
-TERMINAL_KEYBINDING_ACCEL="<Control><Alt>space"
+TERMINAL_KEYBINDING_ACCEL="${VOICE_INPUT_TERMINAL_SHORTCUT:-<Control><Alt>space}"
 
 GUI_KEYBINDING_PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/azure-voice-input-gui/"
 GUI_KEYBINDING_NAME="Azure 语音输入（普通输入框）"
 GUI_KEYBINDING_COMMAND="$SCRIPT_DIR/voice-input-once.sh --mode gui"
-GUI_KEYBINDING_ACCEL="<Control><Alt>slash"
+GUI_KEYBINDING_ACCEL="${VOICE_INPUT_GUI_SHORTCUT:-<Control><Alt>slash}"
 
 if [[ ! -d "$DESKTOP_DIR" && -d "$HOME/Desktop" ]]; then
   DESKTOP_DIR="$HOME/Desktop"
 fi
 
 install -d "$APP_DIR"
+install -m 0644 "$SCRIPT_DIR/azure-voice-input-settings.desktop" "$APP_DIR/azure-voice-input-settings.desktop"
 install -m 0644 "$SCRIPT_DIR/azure-voice-input-terminal.desktop" "$APP_DIR/azure-voice-input-terminal.desktop"
 install -m 0644 "$SCRIPT_DIR/azure-voice-input-gui.desktop" "$APP_DIR/azure-voice-input-gui.desktop"
 
 if [[ -d "$DESKTOP_DIR" ]]; then
+  install -m 0755 "$SCRIPT_DIR/azure-voice-input-settings.desktop" "$DESKTOP_DIR/azure-voice-input-settings.desktop"
   install -m 0755 "$SCRIPT_DIR/azure-voice-input-terminal.desktop" "$DESKTOP_DIR/azure-voice-input-terminal.desktop"
   install -m 0755 "$SCRIPT_DIR/azure-voice-input-gui.desktop" "$DESKTOP_DIR/azure-voice-input-gui.desktop"
   if command -v gio >/dev/null; then
+    gio set "$DESKTOP_DIR/azure-voice-input-settings.desktop" metadata::trusted true 2>/dev/null || true
     gio set "$DESKTOP_DIR/azure-voice-input-terminal.desktop" metadata::trusted true 2>/dev/null || true
     gio set "$DESKTOP_DIR/azure-voice-input-gui.desktop" metadata::trusted true 2>/dev/null || true
   fi
@@ -66,5 +78,5 @@ printf 'Installed application launchers to: %s\n' "$APP_DIR"
 if [[ -d "$DESKTOP_DIR" ]]; then
   printf 'Installed desktop launchers to: %s\n' "$DESKTOP_DIR"
 fi
-printf 'Installed GNOME shortcut: Ctrl+Alt+Space -> %s\n' "$TERMINAL_KEYBINDING_COMMAND"
-printf 'Installed GNOME shortcut: Ctrl+Alt+/ -> %s\n' "$GUI_KEYBINDING_COMMAND"
+printf 'Installed GNOME shortcut: %s -> %s\n' "$TERMINAL_KEYBINDING_ACCEL" "$TERMINAL_KEYBINDING_COMMAND"
+printf 'Installed GNOME shortcut: %s -> %s\n' "$GUI_KEYBINDING_ACCEL" "$GUI_KEYBINDING_COMMAND"

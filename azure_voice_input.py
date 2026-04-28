@@ -6,6 +6,7 @@ import argparse
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 try:
@@ -15,6 +16,8 @@ except ModuleNotFoundError as exc:
         "Missing dependency: azure-cognitiveservices-speech. "
         "Run: python3 -m pip install -r requirements.txt"
     ) from exc
+
+from voice_usage import record_usage
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -156,11 +159,20 @@ def inject_text(text: str, args: argparse.Namespace) -> None:
 
 def main() -> int:
     args = build_parser().parse_args()
+    started_at = time.monotonic()
     transcript = recognize_once(args)
+    elapsed_seconds = time.monotonic() - started_at
 
     if not transcript:
         print("Azure returned empty text.", file=sys.stderr)
         return 1
+
+    record_usage(
+        elapsed_seconds,
+        language=args.language,
+        mode="print-only" if args.print_only else args.mode,
+        transcript_chars=len(transcript),
+    )
 
     print(transcript)
 

@@ -59,6 +59,15 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 ```
 
+Open the configuration GUI:
+
+```bash
+/home/kk/AI/CODEX/voice-input-online+20260426/run-gui.sh
+```
+
+The GUI includes Azure credential entry, shortcut configuration, local quota
+estimation, diagnostics, and the Azure setup guide.
+
 Set credentials from an Azure AI Speech resource:
 
 ```bash
@@ -108,9 +117,10 @@ cd /home/kk/AI/CODEX/voice-input-online+20260426
 ./install-shortcuts.sh
 ```
 
-This installs two launchers:
+This installs three launchers:
 
 ```text
+Azure 语音输入
 Azure 语音输入（终端）
 Azure 语音输入（普通输入框）
 ```
@@ -131,3 +141,15 @@ ignored, and one recognition pass is capped at 45 seconds by default.
 
 GNOME custom shortcuts usually do not distinguish left and right Shift. Avoid
 using plain `Shift+/` because it is the normal `?` text input shortcut.
+
+## Local quota estimate
+
+Each successful Azure transcription records an approximate local duration in:
+
+```text
+/home/kk/AI/CODEX/voice-input-online+20260426/.state/usage.json
+```
+
+The GUI shows monthly local usage against `AZURE_SPEECH_FREE_TIER_SECONDS`
+from `.env`. This is only a local estimate for this tool; it is not the Azure
+official bill or quota counter.
