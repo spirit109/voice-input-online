@@ -1,8 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Azure 语音输入
-Comment=配置 Azure 语音输入、快捷键、额度估算和诊断
+Name=Azure Voice Input
+Name[zh_CN]=Azure 语音输入
+Comment=Configure Azure voice input, shortcuts, quota estimate, and diagnostics
+Comment[zh_CN]=配置 Azure 语音输入、快捷键、额度估算和诊断
 Exec=/home/kk/AI/CODEX/voice-input-online+20260426/run-gui.sh
 Path=/home/kk/AI/CODEX/voice-input-online+20260426
 Terminal=false

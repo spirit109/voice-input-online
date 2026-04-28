@@ -1,8 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Azure 语音输入（终端）
-Comment=识别一次语音并输入到当前终端
+Name=Azure Voice Input (Terminal)
+Name[zh_CN]=Azure 语音输入（终端）
+Comment=Recognize one utterance and insert it into the active terminal
+Comment[zh_CN]=识别一次语音并输入到当前终端
 Exec=/home/kk/AI/CODEX/voice-input-online+20260426/voice-input-once.sh --mode terminal
 Path=/home/kk/AI/CODEX/voice-input-online+20260426
 Terminal=false

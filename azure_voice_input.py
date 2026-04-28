@@ -18,10 +18,15 @@ except ModuleNotFoundError as exc:
     ) from exc
 
 from voice_usage import record_usage
+from voice_i18n import tr
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
 INJECT_SCRIPT = PROJECT_DIR / "inject-text.sh"
+
+
+def ui_language() -> str:
+    return os.environ.get("VOICE_INPUT_UI_LANGUAGE", "zh-CN")
 
 
 def env_first(*names: str) -> str | None:
@@ -81,18 +86,14 @@ def make_speech_config(args: argparse.Namespace):
     region = env_first("AZURE_SPEECH_REGION", "SPEECH_REGION")
 
     if not key:
-        raise SystemExit(
-            "Set AZURE_SPEECH_KEY or SPEECH_KEY before running this script."
-        )
+        raise SystemExit(tr("missing_key", ui_language()))
 
     if endpoint:
         speech_config = speechsdk.SpeechConfig(subscription=key, endpoint=endpoint)
     elif region:
         speech_config = speechsdk.SpeechConfig(subscription=key, region=region)
     else:
-        raise SystemExit(
-            "Set AZURE_SPEECH_REGION/SPEECH_REGION or AZURE_SPEECH_ENDPOINT/SPEECH_ENDPOINT."
-        )
+        raise SystemExit(tr("missing_region", ui_language()))
 
     speech_config.speech_recognition_language = args.language
 
@@ -119,7 +120,7 @@ def recognize_once(args: argparse.Namespace) -> str:
         audio_config=audio_config,
     )
 
-    print("Speak now. Recognition returns after silence or about 30 seconds.", file=sys.stderr)
+    print(tr("speak_now", ui_language()), file=sys.stderr)
     result = recognizer.recognize_once_async().get()
 
     if result.reason == speechsdk.ResultReason.RecognizedSpeech:
@@ -128,16 +129,16 @@ def recognize_once(args: argparse.Namespace) -> str:
     if result.reason == speechsdk.ResultReason.NoMatch:
         details = result.no_match_details
         reason = details.reason if details else "unknown"
-        raise SystemExit(f"No speech recognized: {reason}")
+        raise SystemExit(tr("no_speech", ui_language(), reason=reason))
 
     if result.reason == speechsdk.ResultReason.Canceled:
         details = result.cancellation_details
         if not details:
-            raise SystemExit("Azure recognition canceled without details.")
-        message = f"Azure recognition canceled: {details.reason}"
-        message += f"\nError code: {details.code}"
+            raise SystemExit(tr("azure_canceled", ui_language(), reason="unknown"))
+        message = tr("azure_canceled", ui_language(), reason=details.reason)
+        message += "\n" + tr("error_code", ui_language(), code=details.code)
         if details.error_details:
-            message += f"\nError details: {details.error_details}"
+            message += "\n" + tr("error_details", ui_language(), details=details.error_details)
         raise SystemExit(message)
 
     raise SystemExit(f"Unexpected Azure result reason: {result.reason}")
@@ -164,7 +165,7 @@ def main() -> int:
     elapsed_seconds = time.monotonic() - started_at
 
     if not transcript:
-        print("Azure returned empty text.", file=sys.stderr)
+        print(tr("empty_text", ui_language()), file=sys.stderr)
         return 1
 
     record_usage(

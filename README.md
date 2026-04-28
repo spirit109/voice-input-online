@@ -67,6 +67,9 @@ Open the configuration GUI:
 
 The GUI includes Azure credential entry, shortcut configuration, local quota
 estimation, diagnostics, and the Azure setup guide.
+Use the interface language selector on the overview page to switch between
+Simplified Chinese and English. The GUI dialogs and desktop notifications use
+the selected language.
 
 Set credentials from an Azure AI Speech resource:
 
@@ -135,6 +138,10 @@ Ctrl+Alt+/     -> Azure 语音输入（普通输入框）
 The terminal mode uses `Ctrl+Shift+V` paste, which is suitable for GNOME
 Terminal. The GUI mode uses `Ctrl+V`, which is suitable for browser and editor
 text fields.
+
+In the GUI shortcut page, click a shortcut field and press the desired key
+combination. The app checks GNOME system/custom shortcuts before saving or
+installing, and shows alternative suggestions when a conflict is found.
 
 Tap the shortcut briefly. Repeated triggers while recognition is active are
 ignored, and one recognition pass is capped at 45 seconds by default.

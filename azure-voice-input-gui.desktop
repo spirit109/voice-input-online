@@ -1,8 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Azure 语音输入（普通输入框）
-Comment=识别一次语音并输入到当前图形界面输入框
+Name=Azure Voice Input (Text Fields)
+Name[zh_CN]=Azure 语音输入（普通输入框）
+Comment=Recognize one utterance and insert it into the active text field
+Comment[zh_CN]=识别一次语音并输入到当前图形界面输入框
 Exec=/home/kk/AI/CODEX/voice-input-online+20260426/voice-input-once.sh --mode gui
 Path=/home/kk/AI/CODEX/voice-input-online+20260426
 Terminal=false

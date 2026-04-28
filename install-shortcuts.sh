@@ -14,13 +14,31 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 
+UI_LANGUAGE="${VOICE_INPUT_UI_LANGUAGE:-zh-CN}"
+
+msg() {
+  local key="$1"
+  case "$UI_LANGUAGE:$key" in
+    en*:terminal_name) printf 'Azure Voice Input (Terminal)' ;;
+    en*:gui_name) printf 'Azure Voice Input (Text Fields)' ;;
+    en*:apps) printf 'Installed application launchers to: %s\n' "$2" ;;
+    en*:desktop) printf 'Installed desktop launchers to: %s\n' "$2" ;;
+    en*:shortcut) printf 'Installed GNOME shortcut: %s -> %s\n' "$2" "$3" ;;
+    *:terminal_name) printf 'Azure 语音输入（终端）' ;;
+    *:gui_name) printf 'Azure 语音输入（普通输入框）' ;;
+    *:apps) printf '已安装应用启动器到：%s\n' "$2" ;;
+    *:desktop) printf '已安装桌面快捷方式到：%s\n' "$2" ;;
+    *:shortcut) printf '已安装 GNOME 快捷键：%s -> %s\n' "$2" "$3" ;;
+  esac
+}
+
 TERMINAL_KEYBINDING_PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/azure-voice-input-terminal/"
-TERMINAL_KEYBINDING_NAME="Azure 语音输入（终端）"
+TERMINAL_KEYBINDING_NAME="$(msg terminal_name)"
 TERMINAL_KEYBINDING_COMMAND="$SCRIPT_DIR/voice-input-once.sh --mode terminal"
 TERMINAL_KEYBINDING_ACCEL="${VOICE_INPUT_TERMINAL_SHORTCUT:-<Control><Alt>space}"
 
 GUI_KEYBINDING_PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/azure-voice-input-gui/"
-GUI_KEYBINDING_NAME="Azure 语音输入（普通输入框）"
+GUI_KEYBINDING_NAME="$(msg gui_name)"
 GUI_KEYBINDING_COMMAND="$SCRIPT_DIR/voice-input-once.sh --mode gui"
 GUI_KEYBINDING_ACCEL="${VOICE_INPUT_GUI_SHORTCUT:-<Control><Alt>slash}"
 
@@ -74,9 +92,9 @@ PY
   gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:"$GUI_KEYBINDING_PATH" binding "$GUI_KEYBINDING_ACCEL"
 fi
 
-printf 'Installed application launchers to: %s\n' "$APP_DIR"
+msg apps "$APP_DIR"
 if [[ -d "$DESKTOP_DIR" ]]; then
-  printf 'Installed desktop launchers to: %s\n' "$DESKTOP_DIR"
+  msg desktop "$DESKTOP_DIR"
 fi
-printf 'Installed GNOME shortcut: %s -> %s\n' "$TERMINAL_KEYBINDING_ACCEL" "$TERMINAL_KEYBINDING_COMMAND"
-printf 'Installed GNOME shortcut: %s -> %s\n' "$GUI_KEYBINDING_ACCEL" "$GUI_KEYBINDING_COMMAND"
+msg shortcut "$TERMINAL_KEYBINDING_ACCEL" "$TERMINAL_KEYBINDING_COMMAND"
+msg shortcut "$GUI_KEYBINDING_ACCEL" "$GUI_KEYBINDING_COMMAND"

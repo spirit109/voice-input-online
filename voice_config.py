@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from voice_i18n import DEFAULT_LANGUAGE, tr
+
 
 PROJECT_DIR = Path(__file__).resolve().parent
 ENV_PATH = PROJECT_DIR / ".env"
@@ -17,6 +19,7 @@ CONFIG_KEYS = [
     "AZURE_SPEECH_END_SILENCE_MS",
     "AZURE_SPEECH_FREE_TIER_SECONDS",
     "VOICE_INPUT_MAX_SECONDS",
+    "VOICE_INPUT_UI_LANGUAGE",
     "VOICE_INPUT_TERMINAL_SHORTCUT",
     "VOICE_INPUT_GUI_SHORTCUT",
 ]
@@ -26,6 +29,7 @@ DEFAULTS = {
     "AZURE_SPEECH_END_SILENCE_MS": "700",
     "AZURE_SPEECH_FREE_TIER_SECONDS": "18000",
     "VOICE_INPUT_MAX_SECONDS": "45",
+    "VOICE_INPUT_UI_LANGUAGE": DEFAULT_LANGUAGE,
     "VOICE_INPUT_TERMINAL_SHORTCUT": "<Control><Alt>space",
     "VOICE_INPUT_GUI_SHORTCUT": "<Control><Alt>slash",
 }
@@ -83,6 +87,9 @@ def write_env(updates: dict[str, str], path: Path = ENV_PATH) -> None:
         f"AZURE_SPEECH_END_SILENCE_MS={_quote(current.get('AZURE_SPEECH_END_SILENCE_MS', DEFAULTS['AZURE_SPEECH_END_SILENCE_MS']))}",
         f"VOICE_INPUT_MAX_SECONDS={_quote(current.get('VOICE_INPUT_MAX_SECONDS', DEFAULTS['VOICE_INPUT_MAX_SECONDS']))}",
         "",
+        "# Interface language: zh-CN or en-US",
+        f"VOICE_INPUT_UI_LANGUAGE={_quote(current.get('VOICE_INPUT_UI_LANGUAGE', DEFAULTS['VOICE_INPUT_UI_LANGUAGE']))}",
+        "",
         "# Local quota estimate",
         f"AZURE_SPEECH_FREE_TIER_SECONDS={_quote(current.get('AZURE_SPEECH_FREE_TIER_SECONDS', DEFAULTS['AZURE_SPEECH_FREE_TIER_SECONDS']))}",
         "",
@@ -97,7 +104,7 @@ def write_env(updates: dict[str, str], path: Path = ENV_PATH) -> None:
 
 def masked_secret(value: str) -> str:
     if not value:
-        return "未配置"
+        return tr("not_configured", parse_env().get("VOICE_INPUT_UI_LANGUAGE"))
     if len(value) <= 8:
         return "*" * len(value)
     return f"{value[:4]}...{value[-4:]}"
