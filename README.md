@@ -1,47 +1,41 @@
 # Voice Input Online
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+[简体中文](README.md) | [English](README.en-US.md)
 
-Voice Input Online is a small desktop voice input tool for Ubuntu GNOME
-Wayland. It uses Azure Speech to transcribe one utterance from the microphone,
-then inserts the recognized text into the active terminal or regular GUI text
-field.
+Voice Input Online 是一个面向 Ubuntu GNOME Wayland 的桌面语音输入工具。
+它使用 Azure Speech 从默认麦克风识别一次语音，然后把识别结果输入到当前终端
+或普通图形界面输入框。
 
-The settings app includes Azure credential setup, shortcut configuration,
-conflict checks, local quota estimation, diagnostics, and a built-in setup
-guide. The interface can switch between Simplified Chinese and English.
+设置界面提供 Azure 密钥配置、快捷键设置、冲突检查、本地额度估算、诊断和内置
+开通教程。界面语言可以在简体中文和英文之间切换。
 
-## Features
+## 功能
 
-- Azure Speech one-shot recognition from the default microphone.
-- Text injection for GNOME Terminal, browsers, editors, and other text fields.
-- PySide6 GUI for credentials, language, shortcuts, quota estimate, diagnostics,
-  and Azure setup guidance.
-- Shortcut capture and GNOME conflict detection before saving.
-- Strict UI language switch: Simplified Chinese or English.
-- Local usage estimate stored under `.state/`, separate from Azure billing.
-- Secret-safe default layout: `.env` is ignored by git; `.env.example` only
-  contains placeholders.
+- 使用 Azure Speech 从默认麦克风进行单次语音识别。
+- 支持向 GNOME Terminal、浏览器、编辑器和其他输入框注入文本。
+- PySide6 图形设置界面，覆盖密钥、语言、快捷键、额度估算、诊断和 Azure 指引。
+- 支持按键识别式快捷键录入，并在保存前检查 GNOME 快捷键冲突。
+- 严格的界面语言切换：简体中文或英文。
+- 本地使用量估算记录在 `.state/`，与 Azure 官方账单分离。
+- 默认保护密钥：`.env` 被 git 忽略，`.env.example` 只放占位内容。
 
-## Platform Status
+## 平台状态
 
-Current implementation targets Ubuntu GNOME on Wayland. The injection layer
-uses `ydotool` through `/dev/uinput`, because `xdotool` is not reliable for
-native Wayland apps.
+当前实现主要支持 Ubuntu GNOME Wayland。文本注入层使用 `ydotool` 通过
+`/dev/uinput` 工作，因为 `xdotool` 对原生 Wayland 应用不可靠。
 
-Windows, WSL, macOS, KDE, and X11 are not the primary supported targets yet.
-The Azure recognition layer is portable Python, but text injection and global
-shortcut installation need platform-specific adapters.
+Windows、WSL、macOS、KDE 和 X11 暂不是主要支持目标。Azure 识别层是 Python，
+相对容易复用；文本注入、全局快捷键、通知和桌面入口需要按平台适配。
 
-## Quick Start
+## 快速开始
 
-Install system packages on Ubuntu:
+在 Ubuntu 安装系统依赖：
 
 ```bash
 sudo apt install python3-venv ydotool wl-clipboard
 ```
 
-Clone and install Python dependencies:
+克隆仓库并安装 Python 依赖：
 
 ```bash
 git clone https://github.com/spirit109/voice-input-online.git
@@ -50,29 +44,27 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 ```
 
-Create local configuration:
+创建本地配置：
 
 ```bash
 cp .env.example .env
 ```
 
-Open the settings app:
+打开设置界面：
 
 ```bash
 ./run-gui.sh
 ```
 
-Fill in the Azure Speech key and region in the GUI, then use the diagnostics
-page to test recognition and injection.
+在 GUI 的 Azure 页面填写 Speech key 和 region，然后到诊断页面测试识别和输入。
 
-## Azure Speech Setup
+## Azure Speech 配置
 
-Create an Azure AI Speech resource in the Azure portal, then copy one key and
-the resource region into the app.
-For setup notes, see [English](docs/azure-setup.en-US.md) or
-[简体中文](docs/azure-setup.zh-CN.md).
+在 Azure 门户创建 Azure AI Speech 资源，然后把一个 key 和资源 region 填入工具。
+配置说明见 [中文](docs/azure-setup.zh-CN.md) 或
+[English](docs/azure-setup.en-US.md)。
 
-Minimal `.env` example:
+最小 `.env` 示例：
 
 ```bash
 AZURE_SPEECH_KEY=replace-with-your-azure-speech-key
@@ -80,107 +72,104 @@ AZURE_SPEECH_REGION=eastasia
 AZURE_SPEECH_LANGUAGE=zh-CN
 ```
 
-Do not commit your real `.env`. The repository ignores it by default.
+不要提交真实 `.env`。本仓库默认忽略该文件。
 
-## Text Injection
+## 文本注入
 
-Recognize one utterance and insert it into GNOME Terminal:
+识别一次语音并输入到 GNOME Terminal：
 
 ```bash
 ./run-azure-voice-input.sh --mode terminal
 ```
 
-Recognize and insert into a normal GUI text field:
+识别并输入到普通图形界面输入框：
 
 ```bash
 ./run-azure-voice-input.sh --mode gui
 ```
 
-Print the recognized text without inserting it:
+只打印识别结果，不执行输入：
 
 ```bash
 ./run-azure-voice-input.sh --print-only
 ```
 
-Pipe text directly into the injection layer:
+直接把文本送入注入层：
 
 ```bash
 printf 'hello world' | ./inject-text.sh --mode gui
 ```
 
-Modes:
+模式说明：
 
-- `terminal`: copy to Wayland clipboard, then press `Ctrl+Shift+V`.
-- `gui`: copy to Wayland clipboard, then press `Ctrl+V`.
-- `type`: type through `ydotool`; slower, but avoids clipboard.
+- `terminal`：复制到 Wayland 剪贴板，然后按 `Ctrl+Shift+V`。
+- `gui`：复制到 Wayland 剪贴板，然后按 `Ctrl+V`。
+- `type`：通过 `ydotool` 逐字输入，速度较慢，但不依赖剪贴板。
 
-By default the tool does not press Enter after injection. To execute a terminal
-command immediately, add `--append-newline`.
+默认不会在输入后按 Enter。如果希望终端命令立即执行，添加 `--append-newline`。
 
-## Desktop Launchers And Shortcuts
+## 桌面入口和快捷键
 
-Install GNOME application launchers, desktop entries, and default shortcuts:
+安装 GNOME 应用启动器、桌面入口和默认快捷键：
 
 ```bash
 ./install-shortcuts.sh
 ```
 
-Default shortcuts:
+默认快捷键：
 
 ```text
-Ctrl+Alt+Space -> terminal mode
-Ctrl+Alt+/     -> GUI text-field mode
+Ctrl+Alt+Space -> 终端模式
+Ctrl+Alt+/     -> 普通输入框模式
 ```
 
-The installer renders `.desktop` files from `packaging/linux/*.desktop.in` with
-the current clone path, so users can clone the repository anywhere.
+安装脚本会从 `packaging/linux/*.desktop.in` 按当前 clone 路径动态生成 `.desktop`
+文件，所以用户可以把仓库克隆到任意目录。
 
-In the GUI shortcut page, click a shortcut field and press the desired key
-combination. The app checks existing GNOME system/custom shortcuts and shows
-alternative suggestions when a conflict is found.
+在 GUI 的快捷键页面，点击快捷键输入框后直接按下想要的组合键。应用会检查现有
+GNOME 系统快捷键和自定义快捷键，如果冲突会给出替代建议。
 
-GNOME custom shortcuts usually do not distinguish left and right Shift. Avoid
-plain `Shift+/`, because it is also the normal `?` text input shortcut.
+GNOME 自定义快捷键通常不区分左右 Shift。避免使用单独的 `Shift+/`，因为它也是
+正常输入 `?` 的组合键。
 
-## Quota Estimate
+## 额度估算
 
-Each successful transcription records an approximate local duration in:
+每次成功识别都会把近似本地时长记录到：
 
 ```text
 .state/usage.json
 ```
 
-The GUI shows monthly local usage against `AZURE_SPEECH_FREE_TIER_SECONDS`
-from `.env`. This is only a local estimate for this tool; it is not the Azure
-official bill or quota counter.
+GUI 的额度页会根据 `.env` 中的 `AZURE_SPEECH_FREE_TIER_SECONDS` 显示本月本地
+估算使用量。这只是本工具的本地估算，不是 Azure 官方账单或官方剩余额度。
 
-## Project Structure
+## 项目结构
 
 ```text
 .
-├── azure_voice_input.py          # Azure Speech recognition CLI
-├── voice_input_gui.py            # PySide6 settings GUI
-├── voice_config.py               # .env parsing and writing
-├── voice_i18n.py                 # Chinese/English UI strings
-├── voice_usage.py                # Local usage estimate
-├── inject-text.sh                # Wayland text injection helper
-├── voice-input-once.sh           # Shortcut-friendly one-shot wrapper
-├── run-azure-voice-input.sh      # Loads .env and runs recognition
-├── run-gui.sh                    # Starts the settings GUI
-├── install-shortcuts.sh          # Installs GNOME launchers and shortcuts
-├── packaging/linux/*.desktop.in  # Desktop entry templates
-├── requirements.txt              # Python dependencies
-└── .env.example                  # Safe configuration template
+├── azure_voice_input.py          # Azure Speech 识别命令行入口
+├── voice_input_gui.py            # PySide6 设置界面
+├── voice_config.py               # .env 读取和写入
+├── voice_i18n.py                 # 中文/英文界面文案
+├── voice_usage.py                # 本地使用量估算
+├── inject-text.sh                # Wayland 文本注入助手
+├── voice-input-once.sh           # 适合快捷键调用的单次识别包装脚本
+├── run-azure-voice-input.sh      # 加载 .env 并运行识别
+├── run-gui.sh                    # 启动设置界面
+├── install-shortcuts.sh          # 安装 GNOME 启动器和快捷键
+├── packaging/linux/*.desktop.in  # 桌面入口模板
+├── requirements.txt              # Python 依赖
+└── .env.example                  # 安全配置模板
 ```
 
-## Development Checks
+## 开发检查
 
 ```bash
 .venv/bin/python -m py_compile azure_voice_input.py voice_config.py voice_i18n.py voice_input_gui.py voice_usage.py
 bash -n inject-text.sh install-shortcuts.sh run-azure-voice-input.sh run-gui.sh voice-input-once.sh
 ```
 
-If `desktop-file-validate` is installed, validate rendered desktop templates:
+如果安装了 `desktop-file-validate`，可以验证渲染后的桌面模板：
 
 ```bash
 mkdir -p .state/desktop-validate
@@ -191,13 +180,12 @@ for file in packaging/linux/*.desktop.in; do
 done
 ```
 
-## Security
+## 安全
 
-- Keep real Azure keys in `.env` only.
-- `.env`, `.venv/`, `.state/`, and Python cache files are ignored by git.
-- Rotate the Azure key immediately if it is ever committed or pasted into an
-  issue, log, screenshot, or chat transcript.
+- 真实 Azure key 只放在 `.env`。
+- `.env`、`.venv/`、`.state/` 和 Python 缓存文件都被 git 忽略。
+- 如果 Azure key 被提交、粘贴到 issue、日志、截图或聊天记录中，请立即轮换密钥。
 
-## License
+## 许可证
 
-MIT License. See [LICENSE](LICENSE).
+MIT License。见 [LICENSE](LICENSE)。
