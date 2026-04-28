@@ -1,5 +1,7 @@
 # Voice Input Online
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 Voice Input Online is a small desktop voice input tool for Ubuntu GNOME
 Wayland. It uses Azure Speech to transcribe one utterance from the microphone,
 then inserts the recognized text into the active terminal or regular GUI text
@@ -8,10 +10,6 @@ field.
 The settings app includes Azure credential setup, shortcut configuration,
 conflict checks, local quota estimation, diagnostics, and a built-in setup
 guide. The interface can switch between Simplified Chinese and English.
-
-English summary: Azure Speech powered voice input for Ubuntu GNOME Wayland,
-with a PySide6 settings GUI, GNOME shortcuts, terminal/text-field injection,
-and local usage estimation.
 
 ## Features
 
@@ -71,7 +69,8 @@ page to test recognition and injection.
 
 Create an Azure AI Speech resource in the Azure portal, then copy one key and
 the resource region into the app.
-For a Chinese step-by-step note, see [docs/azure-setup.zh-CN.md](docs/azure-setup.zh-CN.md).
+For setup notes, see [English](docs/azure-setup.en-US.md) or
+[简体中文](docs/azure-setup.zh-CN.md).
 
 Minimal `.env` example:
 

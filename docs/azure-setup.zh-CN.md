@@ -1,5 +1,7 @@
 # Azure Speech 开通简明指南
 
+[English](azure-setup.en-US.md) | [简体中文](azure-setup.zh-CN.md)
+
 本项目需要一个 Azure AI Speech 资源。你需要从 Azure 门户拿到两个值：
 
 - `AZURE_SPEECH_KEY`
